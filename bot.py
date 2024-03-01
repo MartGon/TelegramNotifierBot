@@ -236,6 +236,7 @@ async def send_updates(context: ContextTypes.DEFAULT_TYPE) -> None:
     # Scan for valid posts
     posts_to_notify = await scanner.scan()
     logging.debug("Seding update to the following subs {}".format(subs))
+    logging.debug("Posts to notify: {}".format(len(posts_to_notify)))
 
     # Send notifications
     for s, _ in subs.items():
@@ -253,14 +254,11 @@ async def send_updates(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 class TelegramBot:
 
-    def __init__(self, config : dict, scanner : Scanner, verbosity : int):
+    def __init__(self, config : dict, scanner : Scanner):
         self.config = config
         self.scanner = scanner
-        self.verbosity = verbosity
 
     def start(self):
-        logging.basicConfig(format='%(levelname)s: %(message)s', level=self.verbosity)
-
         subs = json.loads(open(self.config["subs_file"]).read())
 
         self.application = ApplicationBuilder().token(self.config['bot_token']).build()
