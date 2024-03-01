@@ -10,7 +10,7 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext, CallbackQueryHandler, ContextTypes
 
-from scanner import Scanner
+from TelegramNotifierBot.scanner import Scanner
 
 # Pre-assign button text
 YES_BUTTON = "Yes"
@@ -144,7 +144,8 @@ async def resend(update: Update, context: CallbackContext) -> None:
         posts = scanner.get_unmarked_posts(headers, date_str)
         logging.debug("Unmarked posts {}".format(len(posts)))
         for p in posts:
-            await send_prompt_post_msg(update.message.chat_id, context.bot, p)
+            msg = scanner.get_post_message(p)
+            await send_prompt_post_msg(context.bot, update.message.chat_id, msg, p)
             scanner.mark_post_as_notified(p['id'])
     else:
         await context.bot.send_message(
@@ -167,7 +168,8 @@ async def interested(update: Update, context: CallbackContext) -> None:
         posts = scanner.get_interested_posts(headers, date_str)
         logging.debug("Interested posts {}".format(len(posts)))
         for p in posts:
-            await send_post_msg(update.message.chat_id, context.bot, p)
+            msg = scanner.get_post_message(p)
+            await send_post_msg(context.bot, update.message.chat_id, msg, p)
     else:
         await context.bot.send_message(
             update.message.chat_id,
@@ -188,20 +190,15 @@ def get_date_str(days_before: int) -> str:
 
     return date_str
 
-async def send_post_msg(sub: str, bot: telegram.Bot, p: dict, buttons=None) -> None:
-    FIRST_MENU = "<b>{}</b>\n\n{}\n\n Did you find this post interesting?\n Keywords found: {}\n Links found: {}"
-    LINK = '<a href="{}">{}</a>'
-
-    anchors = '\n'.join([LINK.format(l, l) for l in p['links']])
-    message = FIRST_MENU.format(html.escape(p['title']), p['permalink'], ", ".join(p['keywords']), anchors)
+async def send_post_msg(bot: telegram.Bot, sub: str, message: str, p: dict, buttons=None) -> None:
     await bot.send_message(sub, message, parse_mode=ParseMode.HTML, reply_markup=buttons)
 
-async def send_prompt_post_msg(sub: str, bot: telegram.Bot, p: dict) -> None:
+async def send_prompt_post_msg(bot: telegram.Bot, sub: str, message: str, p: dict) -> None:
     buttons = InlineKeyboardMarkup([[
         InlineKeyboardButton(YES_BUTTON, callback_data=YES_BUTTON + '-' + p['id']),
         InlineKeyboardButton(NO_BUTTON, callback_data=NO_BUTTON + '-' + p['id']),
     ]])
-    await send_post_msg(sub, bot, p, buttons)
+    await send_post_msg(bot, sub, message, p, buttons)
     logging.debug("Notification sent to sub {} about: {}".format(sub, p['title']))
 
 async def button_tap(update: Update, context: CallbackContext) -> None:
@@ -247,7 +244,8 @@ async def send_updates(context: ContextTypes.DEFAULT_TYPE) -> None:
     # Send notifications
     for s, _ in subs.items():
         for p in posts_to_notify:
-            await send_prompt_post_msg(s, bot, p)
+            msg = scanner.get_post_message(p)
+            await send_prompt_post_msg(bot, s, msg, p)
             logging.debug("Notification sent to sub {} about: {}".format(s, p['title']))
         
             # Mark as notified
@@ -259,7 +257,7 @@ async def send_updates(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 class TelegramBot:
 
-    def __init__(self, config : dict, scanner, verbosity : int):
+    def __init__(self, config : dict, scanner : Scanner, verbosity : int):
         self.config = config
         self.scanner = scanner
         self.verbosity = verbosity

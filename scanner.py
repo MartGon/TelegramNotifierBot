@@ -8,6 +8,9 @@ class Scanner:
     async def scan(self) -> list:
         pass
 
+    def get_post_message(self) -> str:
+        pass
+
     def mark_post_as_notified(self, post_id : str):
         pass
 
