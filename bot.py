@@ -1,9 +1,7 @@
 import logging
 import json
 import datetime
-import argparse
 import pytz
-import html
 
 import telegram
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
@@ -140,8 +138,7 @@ async def resend(update: Update, context: CallbackContext) -> None:
         )
         
         scanner = context.application.scanner
-        headers = ["id", "title", "selftext", "over_18", "location", "age", "flair", "author", "online", "permalink", "created_utc", "notified", "interested"]
-        posts = scanner.get_unmarked_posts(headers, date_str)
+        posts = scanner.get_unmarked_posts(date_str)
         logging.debug("Unmarked posts {}".format(len(posts)))
         for p in posts:
             msg = scanner.get_post_message(p)
@@ -164,8 +161,7 @@ async def interested(update: Update, context: CallbackContext) -> None:
         )
         
         scanner = context.application.scanner
-        headers = ["id", "title", "selftext", "over_18", "location", "age", "flair", "author", "online", "permalink", "created_utc", "notified", "interested"]
-        posts = scanner.get_interested_posts(headers, date_str)
+        posts = scanner.get_interested_posts(date_str)
         logging.debug("Interested posts {}".format(len(posts)))
         for p in posts:
             msg = scanner.get_post_message(p)

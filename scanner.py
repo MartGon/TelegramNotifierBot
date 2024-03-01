@@ -17,8 +17,8 @@ class Scanner:
     def mark_post_as_interested(self, post_id : str, interested : bool):
         pass
 
-    def get_unmarked_posts(self, headers: list, date_str : str):
+    def get_unmarked_posts(self, date_str : str):
         pass
 
-    def get_interested_posts(self, headers: list, date = "1970-01-01 00:00:00"):
+    def get_interested_posts(self, date = "1970-01-01 00:00:00"):
         pass
