@@ -92,7 +92,7 @@ async def sub(update: Update, context: CallbackContext) -> None:
     subs = context.application.subs
     subs[update.message.chat_id] = True
 
-    config = context.application.bot.config
+    config = context.application.scanner.config
     with open(config["subs_file"], "w") as f:
         json.dump(subs, f)
 
